@@ -21,7 +21,7 @@ from megnet.utils.preprocessing import DummyScaler, Scaler
 from .base import GraphModel
 
 """
-test
+test 123
 """
 
 class MEGNetModel(GraphModel):

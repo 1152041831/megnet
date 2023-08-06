@@ -39,21 +39,34 @@ def predict(args):
         if i == 0:
             prefix = mn
         else:
+
+            # 创建了一个SequenceMatcher对象sm，它将被用于比较prefix和mn两个字符串。
             sm = SequenceMatcher(None, prefix, mn)
+            # 查找两个字符串prefix和mn之间的最长匹配match。
             match = sm.find_longest_match(0, len(prefix), 0, len(mn))
+            # 确保prefix与待匹配的mn中的相应部分完全匹配。
             prefix = prefix[0 : match.size]
+        # 组合头部信息。 metadata 是
         headers.append(f"{mn} ({model.metadata.get('unit', '').strip('log10')}")
+    # 又将之前匹配好的开头的prefix字符串删除
     headers = [h.lstrip(prefix) for h in headers]
 
+    # 按行读取输入的结构
     for fn in args.structures:
+        # 将str转化为Structure
         structure = Structure.from_file(fn)
         row = [fn]
         for model in models:
+            # 由模型结构预测出val
             val = model.predict_structure(structure).ravel()
             if "log10" in str(model.metadata.get("unit", "")):
                 val = 10**val
+            # 添加每一行的内容
             row.append(val)
         output.append(row)
+
+    # 打印结果
+    # 使用tabulate函数将output列表格式化为表格，并打印输出结果。headers用于指定表格的标题行。
     print(tabulate(output, headers=headers))
 
 # 主函数
@@ -72,15 +85,12 @@ def main():
 
     # 创建子命令解析器 subparsers
     subparsers = parser.add_subparsers()
-
     # 预测方法
     parser_predict = subparsers.add_parser("predict", help="Predict property using MEGNET.")
-
     # 为预测方法设置需要的参数：structures。 需要输入的类型为str，nargs="+"表示可以接受多个值作为输入
     parser_predict.add_argument(
         "-s", "--structures", dest="structures", type=str, nargs="+", help="Structures to process"
     )
-
     # 为预测方法设置需要的参数：models。 表示使用哪个模型进行预测，默认的模型输入为 DEFAULT_MODELS
     parser_predict.add_argument(
         "-m", "--models", dest="models", type=str, nargs="+", default=DEFAULT_MODELS, help="Models to run."
